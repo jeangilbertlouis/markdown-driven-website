@@ -22,7 +22,5 @@ const aboutPage = pages.find(p => p.id === 'about');
 			<button type="button" class="theme-toggle" id="themeToggle" aria-label="Toggle dark mode">🌙</button>
 		</div>
 	</header>
-	<main>
-		{aboutPage ? <article>{aboutPage.body}</article> : '<p>About page not found.</p>'}
-	</main>
+	{aboutPage ? <article>{aboutPage.body}</article> : '<p>About page not found.</p>'}
 </MainLayout>

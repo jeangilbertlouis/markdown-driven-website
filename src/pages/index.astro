@@ -25,7 +25,5 @@ const indexPage = pages.find(p => p.id === 'index');
 			<button type="button" class="theme-toggle" id="themeToggle" aria-label="Toggle dark mode">🌙</button>
 		</div>
 	</header>
-	<main>
-		{indexPage && <article>{indexPage.body}</article>}
-	</main>
+	{indexPage && <article>{indexPage.body}</article>}
 </MainLayout>
