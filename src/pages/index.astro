@@ -1,59 +1,98 @@
 ---
-import BaseHead from '../components/BaseHead.astro';
-import Footer from '../components/Footer.astro';
-import Header from '../components/Header.astro';
-import { SITE_DESCRIPTION, SITE_TITLE } from '../consts';
+// Import collections
+import { getCollection } from 'astro:content';
+
+const pages = await getCollection('pages');
+const navItems = await getCollection('nav');
 ---
 
 <!doctype html>
 <html lang="en">
 	<head>
-		<BaseHead title={SITE_TITLE} description={SITE_DESCRIPTION} />
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width" />
+		<title>{pages.find(p => p.slug === 'index')?.data.title ?? 'Home'}</title>
+		<meta name="description" content="{pages.find(p => p.slug === 'index')?.data.description ?? 'Welcome to our markdown-driven website'}" />
+		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+		<style>
+			:root {
+				--font-atkinson: 'Atkinson', sans-serif;
+				--color-bg: #ffffff;
+				--color-text: #1a1a1a;
+				--color-link: #007bff;
+				--color-nav: #f8f9fa;
+			}
+			[data-theme='dark'] {
+				--color-bg: #1a1a1a;
+				--color-text: #e0e0e0;
+				--color-link: #4da3ff;
+				--color-nav: #000000;
+			}
+			* { box-sizing: border-box; margin: 0; padding: 0; }
+			body {
+				font-family: var(--font-atkinson);
+				background: var(--color-bg);
+				color: var(--color-text);
+				line-height: 1.6;
+				padding: 2rem;
+			}
+			header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; padding-bottom: 1rem; border-bottom: 1px solid #ccc; }
+			header h1 { font-size: 1.5rem; }
+			nav { display: flex; gap: 1rem; }
+			nav a { text-decoration: none; color: var(--color-text); padding: 0.25rem 0.5rem; }
+			nav a:hover { text-decoration: underline; }
+			nav a.active { font-weight: 600; border-bottom: 2px solid var(--color-link); }
+			main { max-width: 70ch; }
+			h1 { font-size: 2.5rem; margin-bottom: 1rem; }
+			h2 { font-size: 1.75rem; margin: 2rem 0 1rem; }
+			p { margin-bottom: 1rem; }
+			a { color: var(--color-link); }
+			a:hover { text-decoration: underline; }
+			footer { margin-top: 3rem; padding-top: 1rem; border-top: 1px solid #ccc; font-size: 0.875rem; color: #666; }
+			.theme-toggle {
+				background: none; border: 1px solid #ccc; border-radius: 4px; cursor: pointer; padding: 0.25rem 0.5rem; color: var(--color-text);
+			}
+			.theme-toggle:hover { border-color: var(--color-link); }
+		</style>
 	</head>
 	<body>
-		<Header />
+		<header>
+			<h1>{pages.find(p => p.slug === 'index')?.data.title ?? 'Home'}</h1>
+			<div>
+				<nav aria-label="Main">
+					{navItems
+						.sort((a, b) => (a.data.order ?? 0) - (b.data.order ?? 0))
+						.map(nav => {
+							const isActive = nav.slug === 'index';
+							return <a href={nav.data.href} class={isActive ? 'active' : ''}>{nav.data.label}</a>;
+						})}
+				</nav>
+				<button type="button" class="theme-toggle" id="themeToggle">🌙</button>
+			</div>
+		</header>
 		<main>
-			<h1>🧑‍🚀 Hello, Astronaut!</h1>
-			<p>
-				Welcome to the official <a href="https://astro.build/">Astro</a> blog starter template. This
-				template serves as a lightweight, minimally-styled starting point for anyone looking to
-				build a personal website, blog, or portfolio with Astro.
-			</p>
-			<p>
-				This template comes with a few integrations already configured in your{' '}
-				<code>astro.config.mjs</code> file. You can customize your setup with{' '}
-				<a href="https://astro.build/integrations">Astro Integrations</a> to add tools like
-				Tailwind, React, or Vue to your project.
-			</p>
-			<p>Here are a few ideas on how to get started with the template:</p>
-			<ul>
-				<li>
-					Edit this page in <code>src/pages/index.astro</code>
-				</li>
-				<li>
-					Edit the site header items in <code>src/components/Header.astro</code>
-				</li>
-				<li>
-					Add your name to the footer in <code>src/components/Footer.astro</code>
-				</li>
-				<li>
-					Check out the included blog posts in <code>src/content/blog/</code>
-				</li>
-				<li>
-					Customize the blog post page layout in <code>src/layouts/BlogPost.astro</code>
-				</li>
-			</ul>
-			<p>
-				Have fun! If you get stuck, remember to{' '}
-				<a href="https://docs.astro.build/">read the docs</a> or{' '}
-				<a href="https://astro.build/chat">join us on Discord</a> to ask questions.
-			</p>
-			<p>
-				Looking for a blog template with a bit more personality? Check out{' '}
-				<a href="https://github.com/Charca/astro-blog-template">astro-blog-template</a> by{' '}
-				<a href="https://twitter.com/Charca">Maxi Ferreira</a>.
-			</p>
+			{pages.map(page => {
+				if (page.slug === 'index') {
+					return <article>{page.body}</article>;
+				}
+				return '';
+			})}
 		</main>
-		<Footer />
+		<footer>
+			<p>&copy; {new Date().getFullYear()} Markdown-Driven Website</p>
+		</footer>
+		<script>
+			const toggle = document.getElementById('themeToggle');
+			const root = document.documentElement;
+			const savedTheme = localStorage.getItem('theme') || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+			root.setAttribute('data-theme', savedTheme);
+			toggle.textContent = savedTheme === 'dark' ? '☀️' : '🌙';
+			toggle.addEventListener('click', () => {
+				const isDark = root.getAttribute('data-theme') === 'dark';
+				root.setAttribute('data-theme', isDark ? 'light' : 'dark');
+				localStorage.setItem('theme', isDark ? 'light' : 'dark');
+				toggle.textContent = isDark ? '☀️' : '🌙';
+			});
+		</script>
 	</body>
 </html>

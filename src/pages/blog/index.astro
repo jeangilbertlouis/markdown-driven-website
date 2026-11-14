@@ -1,13 +1,10 @@
 ---
-import { Image } from 'astro:assets';
 import { getCollection } from 'astro:content';
 import BaseHead from '../../components/BaseHead.astro';
 import Footer from '../../components/Footer.astro';
-import FormattedDate from '../../components/FormattedDate.astro';
 import Header from '../../components/Header.astro';
-import { SITE_DESCRIPTION, SITE_TITLE } from '../../consts';
 
-const posts = (await getCollection('blog')).sort(
+const posts = (await getCollection('posts')).sort(
 	(a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf(),
 );
 ---
@@ -15,98 +12,94 @@ const posts = (await getCollection('blog')).sort(
 <!doctype html>
 <html lang="en">
 	<head>
-		<BaseHead title={SITE_TITLE} description={SITE_DESCRIPTION} />
+		<BaseHead title="Blog" description="Latest posts from our markdown-driven website" />
 		<style>
-			main {
-				width: 960px;
+			:root {
+				--font-atkinson: 'Atkinson', sans-serif;
+				--color-bg: #ffffff;
+				--color-text: #1a1a1a;
+				--color-link: #007bff;
 			}
-			ul {
-				display: flex;
-				flex-wrap: wrap;
-				gap: 2rem;
-				list-style-type: none;
-				margin: 0;
-				padding: 0;
+			[data-theme='dark'] {
+				--color-bg: #1a1a1a;
+				--color-text: #e0e0e0;
+				--color-link: #4da3ff;
 			}
-			ul li {
-				width: calc(50% - 1rem);
+			* { box-sizing: border-box; margin: 0; padding: 0; }
+			body {
+				font-family: var(--font-atkinson);
+				background: var(--color-bg);
+				color: var(--color-text);
+				line-height: 1.6;
+				padding: 2rem;
 			}
-			ul li * {
-				text-decoration: none;
-				transition: 0.2s ease;
+			header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; padding-bottom: 1rem; border-bottom: 1px solid #ccc; }
+			header h1 { font-size: 1.5rem; }
+			nav { display: flex; gap: 1rem; }
+			nav a { text-decoration: none; color: var(--color-text); padding: 0.25rem 0.5rem; }
+			nav a:hover { text-decoration: underline; }
+			main { max-width: 70ch; }
+			ul { list-style: none; padding: 0; }
+			li { margin-bottom: 1.5rem; border-bottom: 1px solid #eee; padding-bottom: 1rem; }
+			h2 { font-size: 1.5rem; margin-bottom: 0.25rem; }
+			h2 a { color: var(--color-text); text-decoration: none; }
+			h2 a:hover { color: var(--color-link); text-decoration: underline; }
+			.date { color: #666; font-size: 0.875rem; }
+			.tags { margin-top: 0.5rem; }
+			.tag { display: inline-block; background: #e9ecef; color: #495057; padding: 0.125rem 0.5rem; border-radius: 4px; font-size: 0.75rem; margin-right: 0.25rem; text-decoration: none; }
+			a.tag:hover { background: #dee2e6; text-decoration: none; }
+			footer { margin-top: 3rem; padding-top: 1rem; border-top: 1px solid #ccc; font-size: 0.875rem; color: #666; }
+			.theme-toggle {
+				background: none; border: 1px solid #ccc; border-radius: 4px; cursor: pointer; padding: 0.25rem 0.5rem; color: var(--color-text);
 			}
-			ul li:first-child {
-				width: 100%;
-				margin-bottom: 1rem;
-				text-align: center;
-			}
-			ul li:first-child img {
-				width: 100%;
-			}
-			ul li:first-child .title {
-				font-size: 2.369rem;
-			}
-			ul li img {
-				margin-bottom: 0.5rem;
-				border-radius: 12px;
-			}
-			ul li a {
-				display: block;
-			}
-			.title {
-				margin: 0;
-				color: rgb(var(--black));
-				line-height: 1;
-			}
-			.date {
-				margin: 0;
-				color: rgb(var(--gray));
-			}
-			ul li a:hover h4,
-			ul li a:hover .date {
-				color: rgb(var(--accent));
-			}
-			ul a:hover img {
-				box-shadow: var(--box-shadow);
-			}
-			@media (max-width: 720px) {
-				ul {
-					gap: 0.5em;
-				}
-				ul li {
-					width: 100%;
-					text-align: center;
-				}
-				ul li:first-child {
-					margin-bottom: 0;
-				}
-				ul li:first-child .title {
-					font-size: 1.563em;
-				}
-			}
+			.theme-toggle:hover { border-color: var(--color-link); }
 		</style>
 	</head>
 	<body>
-		<Header />
+		<header>
+			<h1>Blog</h1>
+			<div>
+				<nav aria-label="Main">
+					<a href="/">Home</a>
+					<a href="/about/">About</a>
+				</nav>
+				<button type="button" class="theme-toggle" id="themeToggle">🌙</button>
+			</div>
+		</header>
 		<main>
 			<section>
 				<ul>
 					{posts.map((post) => (
 						<li>
-							<a href={`/blog/${post.id}/`}>
-								{post.data.heroImage && (
-									<Image width={720} height={360} src={post.data.heroImage} alt="" />
-								)}
-								<h4 class="title">{post.data.title}</h4>
-								<p class="date">
-									<FormattedDate date={post.data.pubDate} />
-								</p>
-							</a>
+							<h2><a href={`/blog/${post.slug}/`}>{post.data.title}</a></h2>
+							<p class="date">{post.data.pubDate.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</p>
+							{post.data.tags && post.data.tags.length > 0 && (
+								<div class="tags">
+									{post.data.tags.map(tag => (
+										<a href={`/blog/tag/${tag}/`} class="tag">#{tag}</a>
+									))}
+								</div>
+							)}
 						</li>
 					))}
 				</ul>
 			</section>
 		</main>
-		<Footer />
+		<footer>
+			<p>&copy; {new Date().getFullYear()} Markdown-Driven Website</p>
+		</footer>
+		<script>
+			const toggle = document.getElementById('themeToggle');
+			const root = document.documentElement;
+			const savedTheme = localStorage.getItem('theme') || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+			root.setAttribute('data-theme', savedTheme);
+			toggle.textContent = savedTheme === 'dark' ? '☀️' : '🌙';
+			toggle.addEventListener('click', () => {
+				const isDark = root.getAttribute('data-theme') === 'dark';
+				root.setAttribute('data-theme', isDark ? 'light' : 'dark');
+				localStorage.setItem('theme', isDark ? 'light' : 'dark');
+				toggle.textContent = isDark ? '☀️' : '🌙';
+			});
+		</script>
 	</body>
 </html>
