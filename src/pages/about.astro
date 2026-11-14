@@ -1,93 +1,28 @@
 ---
 import { getCollection } from 'astro:content';
+import MainLayout from '../layouts/MainLayout.astro';
 
 const pages = await getCollection('pages');
 const navItems = await getCollection('nav');
 const aboutPage = pages.find(p => p.id === 'about');
 ---
 
-<!doctype html>
-<html lang="en">
-	<head>
-		<meta charset="utf-8" />
-		<meta name="viewport" content="width=device-width" />
-		<title>{aboutPage?.data.title ?? 'About'}</title>
-		<meta name="description" content="{aboutPage?.data.description ?? 'Learn more about this project'}" />
-		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-		<style>
-			:root {
-				--font-atkinson: 'Atkinson', sans-serif;
-				--color-bg: #ffffff;
-				--color-text: #1a1a1a;
-				--color-link: #007bff;
-				--color-nav: #f8f9fa;
-			}
-			[data-theme='dark'] {
-				--color-bg: #1a1a1a;
-				--color-text: #e0e0e0;
-				--color-link: #4da3ff;
-				--color-nav: #000000;
-			}
-			* { box-sizing: border-box; margin: 0; padding: 0; }
-			body {
-				font-family: var(--font-atkinson);
-				background: var(--color-bg);
-				color: var(--color-text);
-				line-height: 1.6;
-				padding: 2rem;
-			}
-			header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; padding-bottom: 1rem; border-bottom: 1px solid #ccc; }
-			header h1 { font-size: 1.5rem; }
-			nav { display: flex; gap: 1rem; }
-			nav a { text-decoration: none; color: var(--color-text); padding: 0.25rem 0.5rem; }
-			nav a:hover { text-decoration: underline; }
-			nav a.active { font-weight: 600; border-bottom: 2px solid var(--color-link); }
-			main { max-width: 70ch; }
-			h1 { font-size: 2.5rem; margin-bottom: 1rem; }
-			h2 { font-size: 1.75rem; margin: 2rem 0 1rem; }
-			p { margin-bottom: 1rem; }
-			a { color: var(--color-link); }
-			a:hover { text-decoration: underline; }
-			footer { margin-top: 3rem; padding-top: 1rem; border-top: 1px solid #ccc; font-size: 0.875rem; color: #666; }
-			.theme-toggle {
-				background: none; border: 1px solid #ccc; border-radius: 4px; cursor: pointer; padding: 0.25rem 0.5rem; color: var(--color-text);
-			}
-			.theme-toggle:hover { border-color: var(--color-link); }
-		</style>
-	</head>
-	<body>
-		<header>
-			<h1>{aboutPage?.data.title ?? 'About'}</h1>
-			<div>
-				<nav aria-label="Main">
-					{navItems
-						.sort((a, b) => (a.data.order ?? 0) - (b.data.order ?? 0))
-						.map(nav => {
-							const isActive = nav.id === 'about';
-							return <a href={nav.data.href} class={isActive ? 'active' : ''}>{nav.data.label}</a>;
-						})}
-				</nav>
-				<button type="button" class="theme-toggle" id="themeToggle">🌙</button>
-			</div>
-		</header>
-		<main>
-			{aboutPage ? <article>{aboutPage.body}</article> : '<p>About page not found.</p>'}
-		</main>
-		<footer>
-			<p>&copy; {new Date().getFullYear()} Markdown-Driven Website</p>
-		</footer>
-		<script>
-			const toggle = document.getElementById('themeToggle');
-			const root = document.documentElement;
-			const savedTheme = localStorage.getItem('theme') || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
-			root.setAttribute('data-theme', savedTheme);
-			toggle.textContent = savedTheme === 'dark' ? '☀️' : '🌙';
-			toggle.addEventListener('click', () => {
-				const isDark = root.getAttribute('data-theme') === 'dark';
-				root.setAttribute('data-theme', isDark ? 'light' : 'dark');
-				localStorage.setItem('theme', isDark ? 'light' : 'dark');
-				toggle.textContent = isDark ? '☀️' : '🌙';
-			});
-		</script>
-	</body>
-</html>
+<MainLayout>
+	<header>
+		<h1>{aboutPage?.data.title ?? 'About'}</h1>
+		<div>
+			<nav aria-label="Main">
+				{navItems
+					.sort((a, b) => (a.data.order ?? 0) - (b.data.order ?? 0))
+					.map(nav => {
+						const isActive = nav.id === 'about';
+						return <a href={nav.data.href} class={isActive ? 'active' : ''}>{nav.data.label}</a>;
+					})}
+			</nav>
+			<button type="button" class="theme-toggle" id="themeToggle" aria-label="Toggle dark mode">🌙</button>
+		</div>
+	</header>
+	<main>
+		{aboutPage ? <article>{aboutPage.body}</article> : '<p>About page not found.</p>'}
+	</main>
+</MainLayout>
