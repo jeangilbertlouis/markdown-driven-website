@@ -4,9 +4,6 @@
 param siteName string {
   minLength: 2
   maxLength: 60
-  metadata: {
-    description: 'The name of the Static Web App (must be unique globally)'
-  }
 }
 
 param location string = resourceGroup().location
@@ -39,13 +36,5 @@ resource swa 'Microsoft.Web/staticSites@2022-09-01' = {
   }
 }
 
-resource githubLink 'Microsoft.Web/staticSites/userProvidedFunctionApps@2022-09-01' = {
-  name: '${swaName}/userProvidedFunctionApps'
-  properties: {
-    functionAppResourceGroup: resourceGroup().id
-  }
-}
-
 output swaName string = swa.name
 output swaDefaultHostUrl string = swa.properties.defaultHostname
-output swaRepositoryUrl string = swa.properties.repositoryUrl
