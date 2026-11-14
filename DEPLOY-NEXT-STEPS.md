@@ -26,28 +26,38 @@ echo "# Build trigger" >> README.md
 git commit -am "trigger build" && git push
 ```
 
-### Option 2: Configure GitHub PAT for Private Repository
+**Note:** Azure SWA can access public repositories without a PAT token. After making the repo public, reconnect the SWA:
+```bash
+az staticwebapp reconnect \
+  --name mdwebsite2026 \
+  --resource-group markdown-driven-website-rg \
+  --source https://github.com/jeangilbertlouis/markdown-driven-website \
+  --branch main
+```
 
-1. Create a GitHub Personal Access Token with `repo` scope:
-   ```bash
-   # Go to https://github.com/settings/tokens/new
-   # Select: repo (all checkboxes)
-   # Generate token
-   ```
+### Option 2: Configure GitHub PAT with Correct Scopes
 
-2. Update the SWA with the token:
+The token needs `repo` scope (full control of private repositories). Your current `GITHUB_PACKAGES_TOKEN` appears to have `read:package` scope which is insufficient.
+
+1. Create a GitHub Personal Access Token with **`repo` scope**:
+   - Go to https://github.com/settings/tokens/new
+   - Select: `repo` (all checkboxes under "repo")
+   - Generate token
+
+2. Update the SWA with the new token:
    ```bash
-   az staticwebapp update \
+   az staticwebapp reconnect \
      --name mdwebsite2026 \
      --resource-group markdown-driven-website-rg \
-     --repository-token <your-pat>
+     --source https://github.com/jeangilbertlouis/markdown-driven-website \
+     --branch main \
+     --token <your-new-pat>
    ```
 
-3. Trigger a build:
+3. Trigger a build by pushing a commit:
    ```bash
-   az staticwebapp refresh-git-sync \
-     --name mdwebsite2026 \
-     --resource-group markdown-driven-website-rg
+   echo "# Build trigger" >> README.md
+   git commit -am "trigger build" && git push
    ```
 
 ### Option 3: Use GitHub Actions Directly
