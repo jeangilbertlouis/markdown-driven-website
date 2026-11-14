@@ -54,3 +54,17 @@ const postsWithTag = posts.filter(post => post.data.tags?.includes(tag)).sort(
 	)}
 	<a href="/blog/" class="back-link">← Back to blog</a>
 </MainLayout>
+<script>
+	// Theme toggle functionality
+	const toggle = document.getElementById('themeToggle');
+	const root = document.documentElement;
+	const savedTheme = localStorage.getItem('theme') || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+	root.setAttribute('data-theme', savedTheme);
+	toggle.textContent = savedTheme === 'dark' ? '☀️' : '🌙';
+	toggle.addEventListener('click', () => {
+		const isDark = root.getAttribute('data-theme') === 'dark';
+		root.setAttribute('data-theme', isDark ? 'light' : 'dark');
+		localStorage.setItem('theme', isDark ? 'light' : 'dark');
+		toggle.textContent = isDark ? '☀️' : '🌙';
+	});
+</script>

@@ -12,7 +12,7 @@ This post demonstrates all the Markdown capabilities supported by this website.
 
 ## Headings
 
-The following展示了 all heading levels from H1 to H6:
+The following shows all heading levels from H1 to H6:
 
 ### H3 Heading
 
