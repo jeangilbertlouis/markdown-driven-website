@@ -1,18 +1,16 @@
 ---
-import { getCollection } from 'astro:content';
+import { getCollection, render } from 'astro:content';
 
 export async function getStaticPaths() {
 	const posts = await getCollection('posts');
-	const allTags = [...new Set(posts.flatMap(post => post.data.tags || []))];
-	return allTags.map(tag => ({ params: { tag }, props: { tag } }));
+	return posts.map((post) => ({
+		params: { id: post.id },
+		props: post,
+	}));
 }
 
-const { tag } = Astro.props;
-
-const posts = await getCollection('posts');
-const postsWithTag = posts.filter(post => post.data.tags?.includes(tag)).sort(
-	(a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf(),
-);
+const post = Astro.props;
+const { Content } = await render(post);
 ---
 
 <!doctype html>
@@ -20,8 +18,8 @@ const postsWithTag = posts.filter(post => post.data.tags?.includes(tag)).sort(
 	<head>
 		<meta charset="utf-8" />
 		<meta name="viewport" content="width=device-width" />
-		<title>{tag} | Blog</title>
-		<meta name="description" content={`Posts tagged with ${tag}`} />
+		<title>{post.data.title} | Blog</title>
+		<meta name="description" content="{post.data.description ?? 'Latest post'}" />
 		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
 		<style>
 			:root {
@@ -29,11 +27,13 @@ const postsWithTag = posts.filter(post => post.data.tags?.includes(tag)).sort(
 				--color-bg: #ffffff;
 				--color-text: #1a1a1a;
 				--color-link: #007bff;
+				--color-meta: #666;
 			}
 			[data-theme='dark'] {
 				--color-bg: #1a1a1a;
 				--color-text: #e0e0e0;
 				--color-link: #4da3ff;
+				--color-meta: #aaa;
 			}
 			* { box-sizing: border-box; margin: 0; padding: 0; }
 			body {
@@ -49,16 +49,21 @@ const postsWithTag = posts.filter(post => post.data.tags?.includes(tag)).sort(
 			nav a { text-decoration: none; color: var(--color-text); padding: 0.25rem 0.5rem; }
 			nav a:hover { text-decoration: underline; }
 			main { max-width: 70ch; }
-			h1 { font-size: 2rem; margin-bottom: 1.5rem; }
-			ul { list-style: none; padding: 0; }
-			li { margin-bottom: 1.5rem; border-bottom: 1px solid #eee; padding-bottom: 1rem; }
-			h2 { font-size: 1.5rem; margin-bottom: 0.25rem; }
-			h2 a { color: var(--color-text); text-decoration: none; }
-			h2 a:hover { color: var(--color-link); text-decoration: underline; }
-			.date { color: #666; font-size: 0.875rem; }
-			.tags { margin-top: 0.5rem; }
+			.post-meta { color: var(--color-meta); font-size: 0.875rem; margin-bottom: 1.5rem; }
+			.post-meta a { color: var(--color-meta); }
+			.tags { margin-top: 1rem; }
 			.tag { display: inline-block; background: #e9ecef; color: #495057; padding: 0.125rem 0.5rem; border-radius: 4px; font-size: 0.75rem; margin-right: 0.25rem; text-decoration: none; }
 			a.tag:hover { background: #dee2e6; text-decoration: none; }
+			.post-content :global(h1) { font-size: 2.5rem; margin-bottom: 1rem; }
+			.post-content :global(h2) { font-size: 1.75rem; margin: 2rem 0 1rem; }
+			.post-content :global(p) { margin-bottom: 1rem; }
+			.post-content :global(a) { color: var(--color-link); }
+			.post-content :global(a:hover) { text-decoration: underline; }
+			.post-content :global(pre) { background: #1e1e1e; padding: 1rem; border-radius: 6px; overflow-x: auto; }
+			.post-content :global([data-theme='dark'] pre) { background: #2d2d2d; }
+			.post-content :global(blockquote) { border-left: 4px solid var(--color-link); padding-left: 1rem; margin-left: 0; color: #666; }
+			.post-content :global(ul), .post-content :global(ol) { margin-left: 1.5rem; margin-bottom: 1rem; }
+			.post-content :global(li) { margin-bottom: 0.5rem; }
 			.back-link { display: inline-block; margin-top: 2rem; color: var(--color-link); }
 			footer { margin-top: 3rem; padding-top: 1rem; border-top: 1px solid #ccc; font-size: 0.875rem; color: #666; }
 			.theme-toggle {
@@ -69,37 +74,36 @@ const postsWithTag = posts.filter(post => post.data.tags?.includes(tag)).sort(
 	</head>
 	<body>
 		<header>
-			<h1>Blog</h1>
+			<h1>{post.data.title}</h1>
 			<div>
 				<nav aria-label="Main">
 					<a href="/">Home</a>
 					<a href="/about/">About</a>
+					<a href="/blog/">Blog</a>
 				</nav>
 				<button type="button" class="theme-toggle" id="themeToggle">🌙</button>
 			</div>
 		</header>
 		<main>
-			<h1>Posts tagged with <code style="background: #e9ecef; padding: 0.125rem 0.5rem; border-radius: 4px;">#{tag}</code></h1>
-			{postsWithTag.length > 0 ? (
-				<ul>
-					{postsWithTag.map((post) => (
-						<li>
-							<h2><a href={`/blog/${post.id}/`}>{post.data.title}</a></h2>
-							<p class="date">{post.data.pubDate.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</p>
-							{post.data.tags && post.data.tags.length > 0 && (
-								<div class="tags">
-									{post.data.tags.map(t => (
-										<a href={`/blog/tag/${t}/`} class="tag">#{t}</a>
-									))}
-								</div>
-							)}
-						</li>
-					))}
-				</ul>
-			) : (
-				<p>No posts found with this tag.</p>
-			)}
-			<p><a href="/blog/" class="back-link">← Back to blog</a></p>
+			<article>
+				<div class="post-meta">
+					<time datetime="{post.data.pubDate.toISOString()}">{post.data.pubDate.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</time>
+					{post.data.updatedDate && (
+						<span> • Updated {post.data.updatedDate.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</span>
+					)}
+				</div>
+				{post.data.tags && post.data.tags.length > 0 && (
+					<div class="tags">
+						{post.data.tags.map(tag => (
+							<a href={`/blog/tag/${tag}/`} class="tag">#{tag}</a>
+						))}
+					</div>
+				)}
+				<div class="post-content">
+					<Content />
+				</div>
+				<p><a href="/blog/" class="back-link">← Back to blog</a></p>
+			</article>
 		</main>
 		<footer>
 			<p>&copy; {new Date().getFullYear()} Markdown-Driven Website</p>
