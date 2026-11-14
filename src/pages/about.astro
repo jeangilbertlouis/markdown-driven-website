@@ -3,7 +3,7 @@ import { getCollection } from 'astro:content';
 
 const pages = await getCollection('pages');
 const navItems = await getCollection('nav');
-const aboutPage = pages.find(p => p.slug === 'about');
+const aboutPage = pages.find(p => p.id === 'about');
 ---
 
 <!doctype html>
@@ -63,7 +63,7 @@ const aboutPage = pages.find(p => p.slug === 'about');
 					{navItems
 						.sort((a, b) => (a.data.order ?? 0) - (b.data.order ?? 0))
 						.map(nav => {
-							const isActive = nav.slug === 'about';
+							const isActive = nav.id === 'about';
 							return <a href={nav.data.href} class={isActive ? 'active' : ''}>{nav.data.label}</a>;
 						})}
 				</nav>
